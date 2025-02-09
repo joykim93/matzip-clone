@@ -20,10 +20,13 @@ export class Post extends BaseEntity {
     longitude: number;
 
     @Column()
-    content: MarkerColor;
+    color: MarkerColor;
 
     @Column()
     title: string;
+
+    @Column()
+    address: string;
 
     @Column()
     description: string;
