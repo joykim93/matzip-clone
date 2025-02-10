@@ -74,6 +74,37 @@ export class PostService {
         return post;
     }
 
+    async updatePost(id: number, updatePost: Omit<CreatePostDto, 'latitude' | 'longitude' | 'address'>): Promise<Post> {
+        const post = await this.getPostById(id);
+        if (!post) {
+            throw new NotFoundException('존재하지 않은 피드입니다.');
+        }
+
+        const {
+            color,
+            title,
+            description,
+            date,
+            score,
+            imageUris
+        } = updatePost
+
+        try {
+            const updatePost = await this.postRepository.save({
+                ...post,
+                color,
+                title,
+                description,
+                date,
+                score,
+            });
+            return updatePost;
+        } catch (error) {
+            console.log(error)
+            throw new InternalServerErrorException('장소를 추가하는 과정 에러가 발생했습니다.')
+        }        
+    }
+
     async deletePost(id: number) {
         const result = await this.postRepository
                 .createQueryBuilder('post')
