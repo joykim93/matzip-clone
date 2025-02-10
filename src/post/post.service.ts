@@ -73,4 +73,18 @@ export class PostService {
 
         return post;
     }
+
+    async deletePost(id: number) {
+        const result = await this.postRepository
+                .createQueryBuilder('post')
+                .delete()
+                .from(Post)
+                .where('id = :id', { id })
+                .execute();
+            
+        if (result.affected === 0) {
+            throw new NotFoundException('존재하지 않은 피드입니다.')
+        }
+        return id
+    }
 }
