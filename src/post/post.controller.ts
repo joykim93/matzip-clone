@@ -7,6 +7,11 @@ import { Post as PostEntity } from './post.entity';
 export class PostController {
     constructor(private readonly postService: PostService) {}
 
+    @Get('/markers')
+    getAllMarkers() {
+        return this.postService.getAllMarkers();
+    }
+
     @Get('/posts')
     async getPosts(@Query('page') page: number): Promise<PostEntity[]> {
         return this.postService.getPosts(page);
