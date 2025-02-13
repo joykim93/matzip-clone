@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -31,6 +31,17 @@ export class AuthService {
                 throw new ConflictException('이미 존재하는 이메일입니다.');
             }
             throw new InternalServerErrorException('회원가입 도중 에러가 발생했습니다.')
+        }
+    }
+
+    async signin(authDto: AuthDto) {
+        const { email, password } = authDto;
+        const user = await this.userRepository.findOneBy({ email });
+        if (!user) {
+            throw new NotFoundException('존재하지 않는 이메일 입니다.');
+        }
+        if (!(await bcrypt.compare(password, user.password))) {
+            throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
         }
     }
 }
