@@ -1,6 +1,7 @@
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne } from 'typeorm';
 import { MarkerColor } from './marker-color.enum';
 import { ColumnNumericTransformer } from '../@common/numeric.transformer';
+import { User } from 'src/auth/user.entity';
 
 @Entity()
 export class Post extends BaseEntity {
@@ -48,4 +49,7 @@ export class Post extends BaseEntity {
 
     @DeleteDateColumn()
     deletedAt: Date | null;
+
+    @ManyToOne(() => User, (user) => user.post, { eager: false })
+    user: User;
 }
