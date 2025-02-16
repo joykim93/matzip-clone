@@ -3,6 +3,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './post.entity';
 import { Repository } from 'typeorm';
+import { User } from 'src/auth/user.entity';
 
 @Injectable()
 export class PostService {
@@ -12,9 +13,11 @@ export class PostService {
         private postRepository: Repository<Post>,
     ){}
 
-    async getAllMarkers() {
+    async getAllMarkers(user: User) {
         try {
-            const markers = await this.postRepository.createQueryBuilder('post').select([
+            const markers = await this.postRepository.createQueryBuilder('post')
+            .where('post.userId = :userId', { userId: user.id })
+            .select([
                 'post.id',
                 'post.latitude',
                 'post.longitude',
@@ -30,22 +33,24 @@ export class PostService {
         }
     }
 
-    async getPosts(page: number): Promise<Post[]> {
+    async getPosts(page: number, user: User): Promise<Post[]> {
         const perPage = 10;
         const offset = (page - 1) * perPage;
         return this.postRepository
             .createQueryBuilder('post')
+            .where('post.userId = :userId', { userId: user.id })
             .orderBy('post.date', 'DESC')
             .take(perPage)
             .skip(offset)
             .getMany()
     }
 
-    async getPostById(id: number): Promise<Post | null> {
+    async getPostById(id: number, user: User): Promise<Post | null> {
         try {
             const foundPost = await this.postRepository
                 .createQueryBuilder('post')
                 .where('post.id = :id', { id })
+                .andWhere('post.userId = :userId', { userId: user.id })
                 .getOne()
 
             if (!foundPost) {
@@ -58,7 +63,7 @@ export class PostService {
         }
     }
 
-    async createPost(createPostDto: CreatePostDto) {
+    async createPost(createPostDto: CreatePostDto, user: User) {
         const {
             latitude,
             longitude,
@@ -80,6 +85,7 @@ export class PostService {
             description,
             date,
             score,
+            user,
         })
 
         try {
@@ -89,11 +95,13 @@ export class PostService {
             throw new InternalServerErrorException('장소를 추가하는 과정 에러가 발생했습니다.')
         }
 
-        return post;
+        const { user: _, ...postWithoutUser } = post;
+
+        return postWithoutUser;
     }
 
-    async updatePost(id: number, updatePost: Omit<CreatePostDto, 'latitude' | 'longitude' | 'address'>): Promise<Post> {
-        const post = await this.getPostById(id);
+    async updatePost(id: number, updatePost: Omit<CreatePostDto, 'latitude' | 'longitude' | 'address'>, user: User): Promise<Post> {
+        const post = await this.getPostById(id, user);
         if (!post) {
             throw new NotFoundException('존재하지 않은 피드입니다.');
         }
@@ -123,12 +131,13 @@ export class PostService {
         }        
     }
 
-    async deletePost(id: number) {
+    async deletePost(id: number, user: User) {
         const result = await this.postRepository
                 .createQueryBuilder('post')
                 .delete()
                 .from(Post)
                 .where('id = :id', { id })
+                .andWhere('userId = :userId', { userId: user.id })
                 .execute();
             
         if (result.affected === 0) {
