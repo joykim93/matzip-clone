@@ -49,7 +49,7 @@ export class AuthService {
         }
 
         const { accessToken, refreshToken } = await this.getTokens({ email })
-
+        await this.updateHashedRefreshToken(user.id, refreshToken);
         return { accessToken, refreshToken }
     }
 
@@ -66,5 +66,24 @@ export class AuthService {
         ])
 
         return { accessToken, refreshToken };
+    }
+
+    private async updateHashedRefreshToken(id: number, refreshToken: string) {
+        const salt = await bcrypt.genSalt()
+        const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
+
+        try {
+            await this.userRepository.update(id, { hashedRefreshToken })
+        } catch (error) {
+            console.log(error)
+            throw new InternalServerErrorException('refresh 토큰 업데이트 중 에러가 발생했습니다.')
+        }
+    }
+
+    async refreshToken(user: User) {
+        const { email } = user;
+        const { accessToken, refreshToken } = await this.getTokens({ email });
+        await this.updateHashedRefreshToken(user.id, refreshToken);
+        return { accessToken, refreshToken }
     }
 }
