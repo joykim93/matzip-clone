@@ -4,12 +4,16 @@ import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { AuthDto } from './dto/duth.dto';
 import * as bcrypt from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
     constructor(
         @InjectRepository(User)
-        private userRepository: Repository<User>
+        private userRepository: Repository<User>,
+        private jwtService: JwtService,
+        private configService: ConfigService
     ){}
 
     async signup(authDto: AuthDto) {
@@ -43,5 +47,24 @@ export class AuthService {
         if (!(await bcrypt.compare(password, user.password))) {
             throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
         }
+
+        const { accessToken, refreshToken } = await this.getTokens({ email })
+
+        return { accessToken, refreshToken }
+    }
+
+    private async getTokens(payload: { email: string}) {
+        const [accessToken, refreshToken] = await Promise.all([
+            this.jwtService.signAsync(payload, {
+                secret: this.configService.get('JWT_SECRET'),
+                expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION')
+            }),
+            this.jwtService.signAsync(payload, {
+                secret: this.configService.get('JWT_SECRET'),
+                expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION')
+            })
+        ])
+
+        return { accessToken, refreshToken };
     }
 }
