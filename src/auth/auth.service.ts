@@ -86,4 +86,10 @@ export class AuthService {
         await this.updateHashedRefreshToken(user.id, refreshToken);
         return { accessToken, refreshToken }
     }
+    
+    async getProfile(user: User) {
+        const { password, hashedRefreshToken, ...rest } = user
+
+        return { ...rest };
+    }
 }
