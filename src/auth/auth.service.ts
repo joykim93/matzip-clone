@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -121,6 +121,15 @@ export class AuthService {
         } catch (error) {
             console.log(error)
             throw new InternalServerErrorException('로그아웃 중 에러가 발생했습니다.')
+        }
+    }
+
+    async deleteAccount(user: User) {
+        try {
+            await this.userRepository.createQueryBuilder('user').delete().from(User).where('id = :id', { id: user.id })
+        } catch (error) {
+            console.log(error)
+            throw new BadRequestException('탈퇴할 수 없습니다.')
         }
     }
 }

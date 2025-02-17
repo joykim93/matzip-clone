@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 import { GetUser } from 'src/@common/decorators/get-user.decorators';
@@ -46,5 +46,11 @@ export class AuthController {
     @UseGuards(AuthGuard())
     logout(@GetUser() user: User) {
         return this.authService.deleteRefreshToken(user);
+    }
+
+    @Delete('/me')
+    @UseGuards(AuthGuard())
+    deleteAccount(@GetUser() user: User) {
+        return this.authService.deleteAccount(user);
     }
 }
