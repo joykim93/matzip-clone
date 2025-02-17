@@ -40,4 +40,11 @@ export class AuthController {
     ) {
         return this.authService.editProfile(user, editProfileDto);
     }
+
+    // to do. 로그아웃 정확히 구현이 필요함
+    @Post('/logout')
+    @UseGuards(AuthGuard())
+    logout(@GetUser() user: User) {
+        return this.authService.deleteRefreshToken(user);
+    }
 }
