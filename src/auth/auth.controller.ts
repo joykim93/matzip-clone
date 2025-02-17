@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDto } from './dto/duth.dto';
+import { AuthDto } from './dto/auth.dto';
 import { GetUser } from 'src/@common/decorators/get-user.decorators';
 import { User } from './user.entity';
 import { AuthGuard } from '@nestjs/passport';
+import { EditProfileDto } from './dto/edit-profile.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -29,5 +30,14 @@ export class AuthController {
     @UseGuards(AuthGuard())
     getProfile(@GetUser() user: User) {
         return this.authService.getProfile(user);
+    }
+
+    @Patch('/me')
+    @UseGuards(AuthGuard())
+    editProfile(
+        @GetUser() user: User,
+        @Body() editProfileDto: EditProfileDto
+    ) {
+        return this.authService.editProfile(user, editProfileDto);
     }
 }

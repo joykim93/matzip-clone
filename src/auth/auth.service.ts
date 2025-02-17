@@ -2,10 +2,11 @@ import { ConflictException, Injectable, InternalServerErrorException, NotFoundEx
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
-import { AuthDto } from './dto/duth.dto';
+import { AuthDto } from './dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { EditProfileDto } from './dto/edit-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -91,5 +92,26 @@ export class AuthService {
         const { password, hashedRefreshToken, ...rest } = user
 
         return { ...rest };
+    }
+
+    async editProfile(user: User, editProfile: EditProfileDto) {
+        const currentProfile = await this.userRepository
+            .createQueryBuilder('user')
+            .where('user.id = :userId', { userId: user.id })
+            .getOne();
+
+        if (!currentProfile) {
+            throw new NotFoundException('존재하지 않은 유저 입니다.');
+        }
+        const { nickname, imageUri } = editProfile;
+        currentProfile.nickname = nickname;
+        currentProfile.imageUri = imageUri;
+        try {
+            await this.userRepository.save(currentProfile);
+            return this.getProfile(currentProfile);
+        } catch (error) {
+            console.log(error)
+            throw new InternalServerErrorException('프로필을 수정 중 에러가 발생했습니다.')
+        }
     }
 }
