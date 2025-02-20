@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './post.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/auth/user.entity';
+import { Image } from 'src/image/image.entity';
 
 @Injectable()
 export class PostService {
@@ -11,6 +12,8 @@ export class PostService {
     constructor(
         @InjectRepository(Post)
         private postRepository: Repository<Post>,
+        @InjectRepository(Image)
+        private imageRepository: Repository<Image>,
     ){}
 
     async getAllMarkers(user: User) {
@@ -38,6 +41,7 @@ export class PostService {
         const offset = (page - 1) * perPage;
         return this.postRepository
             .createQueryBuilder('post')
+            .leftJoinAndSelect('post.images', 'image')
             .where('post.userId = :userId', { userId: user.id })
             .orderBy('post.date', 'DESC')
             .take(perPage)
@@ -49,6 +53,7 @@ export class PostService {
         try {
             const foundPost = await this.postRepository
                 .createQueryBuilder('post')
+                .leftJoinAndSelect('post.images', 'image')
                 .where('post.id = :id', { id })
                 .andWhere('post.userId = :userId', { userId: user.id })
                 .getOne()
@@ -88,7 +93,11 @@ export class PostService {
             user,
         })
 
+        const images = imageUris.map((uri) => this.imageRepository.create(uri));
+        post.images = images;
+
         try {
+            await this.imageRepository.save(images);
             await this.postRepository.save(post);
         } catch (error) {
             console.log(error)
@@ -115,7 +124,11 @@ export class PostService {
             imageUris
         } = updatePost
 
+        const images = imageUris.map((uri) => this.imageRepository.create(uri));
+        post.images = images;
+
         try {
+            await this.imageRepository.save(images);
             const updatePost = await this.postRepository.save({
                 ...post,
                 color,
