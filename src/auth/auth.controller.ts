@@ -5,6 +5,7 @@ import { GetUser } from 'src/@common/decorators/get-user.decorators';
 import { User } from './user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { EditProfileDto } from './dto/edit-profile.dto';
+import { MarkerColor } from 'src/post/marker-color.enum';
 
 @Controller('auth')
 export class AuthController {
@@ -52,5 +53,14 @@ export class AuthController {
     @UseGuards(AuthGuard())
     deleteAccount(@GetUser() user: User) {
         return this.authService.deleteAccount(user);
+    }
+
+    @Patch('/category')
+    @UseGuards(AuthGuard())
+    updateCategory(
+        @Body() categories: Record<keyof MarkerColor, string>,
+        @GetUser() user: User,
+    ) {
+        return this.authService.updateCategory(user, categories);
     }
 }

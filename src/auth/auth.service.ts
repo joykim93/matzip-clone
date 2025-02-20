@@ -7,6 +7,7 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EditProfileDto } from './dto/edit-profile.dto';
+import { MarkerColor } from 'src/post/marker-color.enum';
 
 @Injectable()
 export class AuthService {
@@ -131,5 +132,34 @@ export class AuthService {
             console.log(error)
             throw new BadRequestException('탈퇴할 수 없습니다.')
         }
+    }
+    
+    async updateCategory(
+        user: User,
+        categories: Record<keyof MarkerColor, string>,
+    ) {
+        const { RED, YELLOW, BLUE, GREEN, PURPLE } = MarkerColor;
+
+        if (
+            !Object.keys(categories).every((color: MarkerColor) =>
+            [RED, YELLOW, BLUE, GREEN, PURPLE].includes(color))
+        ) {
+            throw new BadRequestException('유효하지 않은 카테고리입니다.');
+        }
+
+        user[RED] = categories[RED];
+        user[YELLOW] = categories[YELLOW];
+        user[BLUE] = categories[BLUE];
+        user[GREEN] = categories[GREEN];
+        user[PURPLE] = categories[PURPLE];
+
+        try {
+            await this.userRepository.save(user);
+        } catch (error) {
+            console.log(error);
+            throw new InternalServerErrorException('카테고리 수정 도중 에러가 발생했습니다.');
+        }
+
+        return this.getProfile(user);
     }
 }
