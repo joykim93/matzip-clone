@@ -1,3 +1,4 @@
+import { Favorite } from "src/favorite/favorite.entity";
 import { MarkerColor } from "src/post/marker-color.enum";
 import { Post } from "src/post/post.entity";
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, Unique, OneToMany } from "typeorm";
@@ -55,4 +56,7 @@ export class User extends BaseEntity {
 
     @OneToMany(() => Post, (post) => post.user, {eager: false})
     post: Post[];
+
+    @OneToMany(() => Favorite, (favorite) => favorite.user, { eager: false })
+    favorites: Favorite[];
 }
