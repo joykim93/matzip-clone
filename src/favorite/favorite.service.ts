@@ -8,6 +8,12 @@ import { Repository } from 'typeorm';
 export class FavoriteService {
     constructor(@InjectRepository(Favorite)private favoriteRepository: Repository<Favorite>) {}
 
+    async getFavorites(user: User) {
+        return await this.favoriteRepository.findBy({
+            user: { id: user.id }
+        })
+    }
+
     async toggleFavorite(postId: number, user: User) {
         const existingFavorite = await this.favoriteRepository.findOne({
             where: {
