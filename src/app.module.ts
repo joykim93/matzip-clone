@@ -20,6 +20,7 @@ import { FavoriteModule } from './favorite/favorite.module';
       database: 'mazip-server',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
+      logging: true, // 실행되는 sql 쿼리 출력
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
