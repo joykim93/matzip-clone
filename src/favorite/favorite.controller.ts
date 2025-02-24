@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FavoriteService } from './favorite.service';
 import { GetUser } from 'src/@common/decorators/get-user.decorators';
@@ -11,9 +11,10 @@ export class FavoriteController {
 
     @Get('/my')
     getFavorites(
+        @Query('page', ParseIntPipe) page: number,
         @GetUser() user: User
     ) {
-        return this.favoriteService.getFavorites(user);
+        return this.favoriteService.getFavorites(page, user);
     }
 
     @Post('/:id')

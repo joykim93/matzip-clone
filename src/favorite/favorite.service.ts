@@ -8,10 +8,18 @@ import { Repository } from 'typeorm';
 export class FavoriteService {
     constructor(@InjectRepository(Favorite)private favoriteRepository: Repository<Favorite>) {}
 
-    async getFavorites(user: User) {
-        return await this.favoriteRepository.findBy({
-            user: { id: user.id }
-        })
+    async getFavorites(page: number, user: User) {
+        const perPage = 10;
+        const offset = (page - 1) * 10;
+        return await this.favoriteRepository
+            .createQueryBuilder('favorite')
+            .innerJoinAndSelect('favorite.post', 'post')
+            .leftJoinAndSelect('post.images', 'image')
+            .where('favorite.userId = :userId', { userId: user.id })
+            .orderBy('post.date', 'DESC')
+            .skip(offset)
+            .take(perPage)
+            .getMany();
     }
 
     async toggleFavorite(postId: number, user: User) {
