@@ -11,7 +11,7 @@ export class FavoriteService {
     async getFavorites(page: number, user: User) {
         const perPage = 10;
         const offset = (page - 1) * 10;
-        return await this.favoriteRepository
+        const favorites = await this.favoriteRepository
             .createQueryBuilder('favorite')
             .innerJoinAndSelect('favorite.post', 'post')
             .leftJoinAndSelect('post.images', 'image')
@@ -20,6 +20,14 @@ export class FavoriteService {
             .skip(offset)
             .take(perPage)
             .getMany();
+
+            const newPosts = favorites.map((favorite) => {
+                const post = favorite.post;
+                const images = [...post.images].sort((a, b) => (a.id = b.id));
+                return { ...post, images };
+            })
+
+            return newPosts;
     }
 
     async toggleFavorite(postId: number, user: User) {
