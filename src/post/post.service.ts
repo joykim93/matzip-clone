@@ -49,11 +49,12 @@ export class PostService {
             .getMany()
     }
 
-    async getPostById(id: number, user: User): Promise<Post | null> {
+    async getPostById(id: number, user: User) {
         try {
             const foundPost = await this.postRepository
                 .createQueryBuilder('post')
                 .leftJoinAndSelect('post.images', 'image')
+                .leftJoinAndSelect('post.favorites', 'favorite', 'favorite.userId = :userId', { userId: user.id })
                 .where('post.id = :id', { id })
                 .andWhere('post.userId = :userId', { userId: user.id })
                 .getOne()
@@ -61,7 +62,9 @@ export class PostService {
             if (!foundPost) {
                 throw new NotFoundException('존재하지 않은 피드입니다.');
             }
-            return foundPost;
+            const { favorites, ...rest } = foundPost;
+            const postWithIsFavorites = { ...rest, isFavorite: favorites.length > 0 }
+            return postWithIsFavorites;
         } catch (error) {
             console.log(error)
             throw new InternalServerErrorException('장소를 가져오는 도중 에러가 발생했습니다.')
